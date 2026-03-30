@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}VisionCore | Enterprise AI Monitoring{% endblock %}
+
+{% block content %}
+<header class="clean-header">
+    <div>
+        <h2 style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2.5px; color: var(--text-dim); margin-bottom: 0.25rem; font-weight: 800;">System Overview</h2>
+        <h1 style="font-size: 2.25rem; font-weight: 800; letter-spacing: -1.2px;">Intelligence Hub</h1>
+    </div>
+    <div id="live-clock" class="header-clock"></div>
+</header>
+
+<section class="hero-bento-minimal">
+    <div class="hero-visual-minimal">
+        <div class="hero-header" style="padding: 6rem 2rem;">
+            <div class="hud-status" style="margin-bottom: 1.5rem;"><span class="dot-online"></span> NODE SECTOR-7G</div>
+            <h1 class="hero-title">Precision Monitoring. Automated Efficiency.</h1>
+            <p class="hero-subtitle">VisionCore powers enterprise-grade room intelligence with real-time neural inference and energy waste mitigation.</p>
+            <div class="hero-actions">
+                <a href="/monitor" class="btn-cta">Start Monitoring</a>
+                <a href="/reports" class="btn-cta btn-secondary">Audit Archive</a>
+            </div>
+        </div>
+
+        <div class="quick-status-row">
+            <div class="status-node">
+                <span class="node-label">Occupancy</span>
+                <span class="node-value" id="t-occupancy">SYNCING...</span>
+            </div>
+            <div class="status-node">
+                <span class="node-label">Efficiency</span>
+                <span class="node-value" id="t-waste">OPTIMIZING...</span>
+            </div>
+            <div class="status-node">
+                <span class="node-label">Uptime</span>
+                <span class="node-value" id="t-uptime">--:--:--</span>
+            </div>
+            <div class="status-node">
+                <span class="node-label">Neural Engine</span>
+                <span class="node-value" style="color: var(--success);">v2.4 ACTIVE</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="feature-pillars">
+    <div class="pillar">
+        <h3 class="pillar-title">Automated Detection</h3>
+        <p class="pillar-text">Seamlessly track room occupancy using state-of-the-art YOLOv8 edge models without manual intervention.</p>
+    </div>
+    <div class="pillar">
+        <h3 class="pillar-title">Waste Mitigation</h3>
+        <p class="pillar-text">Identify and alert for energy waste incidents in seconds, drastically reducing carbon footprint and costs.</p>
+    </div>
+    <div class="pillar">
+        <h3 class="pillar-title">Audit Intelligence</h3>
+        <p class="pillar-text">Access a complete history of occupancy and energy logs, compiled into clear, enterprise-ready reports.</p>
+    </div>
+</section>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function updateClock() {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('en-US', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const dateStr = now.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+        const clock = document.getElementById('live-clock');
+        if (clock) clock.innerText = `${dateStr} | ${timeStr}`;
+    }
+
+    async function updateHeartbeat() {
+        try {
+            const resp = await fetch('/stats');
+            const data = await resp.json();
+            
+            document.getElementById('t-occupancy').innerText = data.current_person_count + " POSITIVES";
+            document.getElementById('t-uptime').innerText = data.uptime;
+            
+            const wasteResp = await fetch('/status');
+            const wasteData = await wasteResp.json();
+            const wasteEl = document.getElementById('t-waste');
+            if (wasteData.is_energy_wasted) {
+                wasteEl.innerText = "WASTE ALERT";
+                wasteEl.style.color = "var(--danger)";
+            } else {
+                wasteEl.innerText = "OPTIMIZED";
+                wasteEl.style.color = "var(--success)";
+            }
+        } catch (e) {
+            console.error("Heartbeat failed", e);
+        }
+    }
+
+    setInterval(updateClock, 1000);
+    setInterval(updateHeartbeat, 2000);
+    updateClock();
+    updateHeartbeat();
+</script>
+{% endblock %}
